@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}Add Patient | InfoCare HealthAI{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-9 col-xl-8">
+
+    <div class="d-flex align-items-center justify-content-between mb-4">
+      <div>
+        <h3 class="fw-bold text-dark mb-1">Register New Patient</h3>
+        <p class="text-muted mb-0">Enter patient demographic details and blood biomarker levels for AI evaluation.</p>
+      </div>
+      <a href="/patients" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1">
+        <i class="bi bi-arrow-left"></i> Back to Directory
+      </a>
+    </div>
+
+    <!-- Technical Assessment 10 Test Cases Selector -->
+    <div class="card border-primary border-opacity-25 shadow-sm rounded-4 mb-4 bg-light">
+      <div class="card-body p-3 p-md-4">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-primary px-2 py-1">Technical Assessment</span>
+            <span class="fw-bold text-dark">Quick Test Case Loader (10 Benchmark Records)</span>
+          </div>
+          <span class="text-muted small">Select a case to auto-fill input fields</span>
+        </div>
+        <p class="text-muted small mb-3">
+          Click any candidate test case below to populate the form fields with the exact assessment data, then click <strong>"Save Patient & Generate AI Remarks"</strong> to submit and verify backend validation.
+        </p>
+
+        <!-- Test Case Buttons Grid -->
+        <div class="d-flex flex-wrap gap-2 mb-3">
+          <button type="button" class="btn btn-sm btn-outline-success" onclick="loadAssessmentCase(1)">
+            Test 1: Robyn Pears <span class="badge bg-success ms-1">Valid</span>
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-danger" onclick="loadAssessmentCase(2)">
+            Test 2: John Hunter <span class="badge bg-danger ms-1">Invalid Email</span>
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-success" onclick="loadAssessmentCase(3)">
+            Test 3: Darryl Tim <span class="badge bg-success ms-1">Valid</span>
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-danger" onclick="loadAssessmentCase(4)">
+            Test 4: Peter Larry <span class="badge bg-danger ms-1">Invalid Date</span>
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-success" onclick="loadAssessmentCase(5)">
+            Test 5: Sam Kerr <span class="badge bg-success ms-1">Valid</span>
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-success" onclick="loadAssessmentCase(6)">
+            Test 6: Robyn Pears <span class="badge bg-primary ms-1">Duplicate (Valid)</span>
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-success" onclick="loadAssessmentCase(7)">
+            Test 7: Madison XI <span class="badge bg-success ms-1">Valid</span>
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-danger" onclick="loadAssessmentCase(8)">
+            Test 8: Kris Wu <span class="badge bg-danger ms-1">Future Date / Invalid Email</span>
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-success" onclick="loadAssessmentCase(9)">
+            Test 9: Tenille Singh <span class="badge bg-success ms-1">Valid</span>
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-success" onclick="loadAssessmentCase(10)">
+            Test 10: Prem Kumar <span class="badge bg-success ms-1">Valid</span>
+          </button>
+        </div>
+
+        <div id="selectedTestCaseInfo" style="display: none;"></div>
+      </div>
+    </div>
+
+    <!-- Error Banner for Backend Validation Failures -->
+    <div id="formErrorAlert" class="alert alert-danger shadow-sm border-danger border-opacity-25 rounded-3 mb-4" style="display: none;"></div>
+
+    <!-- Main Registration Form -->
+    <div class="form-card">
+      <form id="addPatientForm" novalidate>
+        <h5 class="fw-bold text-dark mb-3 pb-2 border-bottom">
+          <i class="bi bi-person-badge text-primary me-2"></i> Patient Information
+        </h5>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <label for="full_name" class="form-label">
+              Full Legal Name <span class="text-danger">*</span>
+            </label>
+            <input
+              type="text"
+              id="full_name"
+              name="full_name"
+              class="form-control"
+              placeholder="e.g. Robyn Pears"
+              required
+            />
+            <div class="input-helper">Patient's official full name. Cannot be empty.</div>
+          </div>
+
+          <div class="col-md-6">
+            <label for="date_of_birth" class="form-label">
+              Date of Birth <span class="text-danger">*</span>
+            </label>
+            <input
+              type="text"
+              id="date_of_birth"
+              name="date_of_birth"
+              class="form-control"
+              placeholder="DD/MM/YYYY or DD.MM.YYYY (e.g. 28.01.1960)"
+              required
+            />
+            <div class="input-helper">Accepts DD/MM/YYYY or DD.MM.YYYY. Must be a valid non-future date.</div>
+          </div>
+
+          <div class="col-12">
+            <label for="email" class="form-label">
+              Email Address <span class="text-danger">*</span>
+            </label>
+            <input
+              type="text"
+              id="email"
+              name="email"
+              class="form-control"
+              placeholder="e.g. robyn@gmail.com"
+              required
+            />
+            <div class="input-helper">Valid email address format (e.g. user@domain.com).</div>
+          </div>
+        </div>
+
+        <h5 class="fw-bold text-dark mb-3 pb-2 border-bottom">
+          <i class="bi bi-droplet-half text-danger me-2"></i> Blood Biomarker Panel
+        </h5>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-4">
+            <label for="glucose" class="form-label">
+              Fasting Glucose (mg/dL) <span class="text-danger">*</span>
+            </label>
+            <input
+              type="number"
+              step="0.1"
+              id="glucose"
+              name="glucose"
+              class="form-control"
+              placeholder="e.g. 232"
+              required
+            />
+            <div class="input-helper">Fasting blood sugar level. Must be numeric &ge; 0.</div>
+          </div>
+
+          <div class="col-md-4">
+            <label for="haemoglobin" class="form-label">
+              Haemoglobin (g/dL) <span class="text-danger">*</span>
+            </label>
+            <input
+              type="number"
+              step="0.1"
+              id="haemoglobin"
+              name="haemoglobin"
+              class="form-control"
+              placeholder="e.g. 13.5"
+              required
+            />
+            <div class="input-helper">Haemoglobin concentration. Must be numeric &ge; 0.</div>
+          </div>
+
+          <div class="col-md-4">
+            <label for="cholesterol" class="form-label">
+              Total Cholesterol (mg/dL) <span class="text-danger">*</span>
+            </label>
+            <input
+              type="number"
+              step="0.1"
+              id="cholesterol"
+              name="cholesterol"
+              class="form-control"
+              placeholder="e.g. 180"
+              required
+            />
+            <div class="input-helper">Total serum cholesterol. Must be numeric &ge; 0.</div>
+          </div>
+        </div>
+
+        <div class="alert alert-info d-flex align-items-center gap-2 py-2 px-3 small mb-4">
+          <i class="bi bi-info-circle-fill fs-5"></i>
+          <div>
+            Upon saving, the blood test metrics are sent to OpenRouter AI to automatically generate structured health observations.
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center pt-2">
+          <a href="/patients" class="btn btn-outline-secondary">Cancel</a>
+          <button type="submit" class="btn btn-primary-healthcare px-4 d-flex align-items-center gap-2">
+            <i class="bi bi-cloud-arrow-up-fill"></i>
+            <span>Save Patient & Generate AI Remarks</span>
+          </button>
+        </div>
+      </form>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+

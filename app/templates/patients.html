@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Patient Directory | InfoCare HealthAI{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 gap-3">
+  <div>
+    <h3 class="fw-bold text-dark mb-1">Patient Clinical Directory</h3>
+    <p class="text-muted mb-0">Browse, filter, edit, or regenerate AI remarks for all registered patient records.</p>
+  </div>
+  <div class="d-flex align-items-center gap-2">
+    <a href="/patients/add" class="btn btn-primary-healthcare d-flex align-items-center gap-1">
+      <i class="bi bi-person-plus-fill"></i> Add New Patient
+    </a>
+  </div>
+</div>
+
+<div class="content-card">
+  <div class="content-card-header flex-column flex-md-row gap-3">
+    <div class="d-flex align-items-center gap-2">
+      <i class="bi bi-person-lines-fill text-primary fs-5"></i>
+      <h5 class="fw-bold mb-0">All Registered Patients (<span id="patientTotalCount">{{ patients|length }}</span>)</h5>
+    </div>
+
+    <!-- Search input -->
+    <div class="col-12 col-md-4">
+      <div class="input-group">
+        <span class="input-group-text bg-light border-end-0">
+          <i class="bi bi-search text-muted"></i>
+        </span>
+        <input
+          type="text"
+          id="patientSearchInput"
+          class="form-control border-start-0"
+          placeholder="Search by name, email, or ID..."
+        />
+      </div>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-healthcare align-middle mb-0" id="patientsTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Full Name</th>
+          <th>Date of Birth</th>
+          <th>Email</th>
+          <th>Glucose</th>
+          <th>Haemoglobin</th>
+          <th>Cholesterol</th>
+          <th>AI Remarks</th>
+          <th>AI Status</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="patientsTableBody">
+        {% if patients %}
+          {% for p in patients %}
+          <tr
+            id="patient-row-{{ p.id }}"
+            class="patient-row"
+            data-id="{{ p.id }}"
+            data-name="{{ p.full_name }}"
+            data-email="{{ p.email }}"
+          >
+            <td class="fw-bold text-secondary">#{{ p.id }}</td>
+            <td>
+              <div class="fw-bold text-dark">{{ p.full_name }}</div>
+            </td>
+            <td>{{ p.date_of_birth.strftime('%d/%m/%Y') if p.date_of_birth else '--' }}</td>
+            <td><code class="text-dark bg-light px-2 py-1 rounded">{{ p.email }}</code></td>
+            <td>
+              <span class="metric-pill {% if p.glucose > 140 %}high{% elif p.glucose < 70 %}high{% else %}normal{% endif %}">
+                {{ p.glucose }} mg/dL
+              </span>
+            </td>
+            <td>
+              <span class="metric-pill {% if p.haemoglobin < 11.0 or p.haemoglobin > 18.0 %}high{% else %}normal{% endif %}">
+                {{ p.haemoglobin }} g/dL
+              </span>
+            </td>
+            <td>
+              <span class="metric-pill {% if p.cholesterol >= 200 %}high{% else %}normal{% endif %}">
+                {{ p.cholesterol }} mg/dL
+              </span>
+            </td>
+            <td>
+              <div class="remarks-preview text-muted" title="{{ p.remarks }}">
+                {{ p.remarks or 'Pending analysis...' }}
+              </div>
+            </td>
+            <td>
+              {% if p.ai_status == 'COMPLETED' %}
+                <span class="badge-ai-completed">
+                  <i class="bi bi-check-circle-fill"></i> Completed
+                </span>
+              {% elif p.ai_status == 'FAILED' %}
+                <span class="badge-ai-failed">
+                  <i class="bi bi-exclamation-circle-fill"></i> Failed
+                </span>
+              {% else %}
+                <span class="badge-ai-pending">
+                  <i class="bi bi-clock-fill"></i> Pending
+                </span>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              <div class="btn-group btn-group-sm">
+                <button
+                  type="button"
+                  class="btn btn-light border text-primary"
+                  onclick="viewPatientDetails({{ p.id }})"
+                  title="View Details"
+                >
+                  <i class="bi bi-eye"></i>
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-light border text-info"
+                  onclick="regenerateRemarks({{ p.id }})"
+                  title="Regenerate AI Remarks"
+                >
+                  <i class="bi bi-arrow-clockwise"></i>
+                </button>
+                <a
+                  href="/patients/edit/{{ p.id }}"
+                  class="btn btn-light border text-secondary"
+                  title="Edit Patient"
+                >
+                  <i class="bi bi-pencil"></i>
+                </a>
+                <button
+                  type="button"
+                  class="btn btn-light border text-danger"
+                  onclick="confirmDeletePatient({{ p.id }}, '{{ p.full_name }}')"
+                  title="Delete Patient"
+                >
+                  <i class="bi bi-trash3"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr id="emptyTableRow">
+            <td colspan="10" class="text-center py-5">
+              <div class="text-muted">
+                <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary"></i>
+                <h6>No patient records found.</h6>
+                <p class="small text-muted mb-3">Add a patient record to populate this directory.</p>
+                <a href="/patients/add" class="btn btn-primary-healthcare btn-sm">
+                  <i class="bi bi-person-plus-fill me-1"></i> Add Patient
+                </a>
+              </div>
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
